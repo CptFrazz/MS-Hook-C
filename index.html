@@ -47,7 +47,7 @@
 
       <section id="main_content">
         <h1>
-<a name="hooking-private-code-on-iososx" class="anchor" href="#hooking-private-code-on-iososx"><span class="octicon octicon-link"></span></a>Hooking Private Code on iOS/OSX</h1>
+<a name="hooking-private-code-from-stripped-ios-binaries" class="anchor" href="#hooking-private-code-from-stripped-ios-binaries"><span class="octicon octicon-link"></span></a>Hooking Private Code from Stripped iOS Binaries</h1>
 
 <p>As far as the scanner is concerned, I'm finished with it. I'm going to do a final sweep and remove superfluous code and then I'll land the final commit.
 The scanner currently works on both iOS and OSX however the technique for hooking is iOS only.
@@ -60,6 +60,12 @@ You can hook code on OSX easily so I won't be covering it here.</p>
 
 <ol>
 <li><p>Open your target app in a disassembler, grab first ~16 bytes (customise this as you will) of the method you want to hook and then use these as the signature with the scanner.</p></li>
+<li>
+<p>Compile the scanner and then set the binary's entitlements appropriately:</p>
+
+<pre><code>ldid -Sentitlements.xml &lt;scanner binary&gt;
+</code></pre>
+</li>
 <li>
 <p>Run the scanner against the target process. It will locate the signature in memory and print it's address. The signature has to be passed in as bytes, not a literal string so use the scanner as shown:</p>
 
@@ -79,15 +85,9 @@ You can hook code on OSX easily so I won't be covering it here.</p>
 </ul>
 </li>
 <li>
-<p>You will now need to set the binary's entitlements appropriately:</p>
-
-<pre><code>ldid -Sentitlements.xml &lt;scanner binary&gt;
-</code></pre>
-</li>
-<li>
 <p>Inject your library into the process as you normally would:</p>
 
-<pre><code>DYLD_INSERT_LIBRARIES=/Library/MobileSubstrate/DynamicLibraries/&lt;lib&gt;.dylib ./&lt;binary&gt;
+<pre><code>DYLD_INSERT_LIBRARIES=/Library/MobileSubstrate/DynamicLibraries/&lt;libName&gt;.dylib ./&lt;binary&gt;
 </code></pre>
 </li>
 </ol>
