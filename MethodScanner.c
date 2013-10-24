@@ -21,6 +21,7 @@
 
 int pid = 0;
 int g_pid = 0;
+int needleLen = 0;
 unsigned char *needle;
 
 mach_vm_address_t *scanMem(int pid, mach_vm_address_t addr, mach_msg_type_number_t size)
@@ -33,7 +34,7 @@ mach_vm_address_t *scanMem(int pid, mach_vm_address_t addr, mach_msg_type_number
     kern_return_t kr_val;
     pointer_t memStart;
     uint32_t sz;
-    int len = strlen(needle);
+    int len = needleLen;
     unsigned char buffer[len];
     int i = 0;
 
@@ -111,7 +112,7 @@ int main(int argc, char** argv) {
     mach_vm_address_t addr = 1;
 
 
-    if (argc >= 3)
+    if (argc >= 4)
     {
         pid = atoi(argv[1]);
         g_pid = pid; //Required for fw >= 6.0    
@@ -122,6 +123,7 @@ int main(int argc, char** argv) {
             exit(1);
         }
         needle = argv[2];
+        needleLen = argv[3];
         printf("[+] PID: %d\n[i] Task: %d\n[+] Needle: \"%s\"\n", pid, task, needle);
         unsigned int *sym = getMemRegions(task, addr);
         if (sym != NULL)
@@ -130,6 +132,6 @@ int main(int argc, char** argv) {
             printf("[-] Didn\'t find the function.\n");
     }
     else
-        fprintf(stderr, "[i] Usage: %s <pid> $'<needle>'\n", argv[0]);
+        fprintf(stderr, "[i] Usage: %s <pid> $'<needle>' <needle length (in bytes)>\n", argv[0]);
     return 0;
 }
