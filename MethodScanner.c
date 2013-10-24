@@ -65,7 +65,7 @@ mach_vm_address_t *scanMem(int pid, mach_vm_address_t addr, mach_msg_type_number
     fflush(stdout);
     return NULL;
 } 
-
+
 
 unsigned int *getMemRegions(task_t task, vm_address_t address)
 {
@@ -123,7 +123,7 @@ int main(int argc, char** argv) {
             exit(1);
         }
         needle = argv[2];
-        needleLen = argv[3];
+        needleLen = atoi(argv[3]);
         printf("[+] PID: %d\n[i] Task: %d\n[+] Needle: \"%s\"\n", pid, task, needle);
         unsigned int *sym = getMemRegions(task, addr);
         if (sym != NULL)
