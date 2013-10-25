@@ -124,7 +124,7 @@ int main(int argc, char** argv) {
         }
         needle = argv[2];
         needleLen = atoi(argv[3]);
-        printf("[+] PID: %d\n[i] Task: %d\n[+] Needle: \"%s\"\n", pid, task, needle);
+        printf("[+] PID: %d\n[i] Task: %d\n[+] Needle Length: \"%d\"\n", pid, task, needleLen);
         unsigned int *sym = getMemRegions(task, addr);
         if (sym != NULL)
             printf("\n\n\t[$] Located target function ---> %p\n\n", sym);
