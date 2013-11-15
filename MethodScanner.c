@@ -18,11 +18,13 @@
 #include <mach/vm_map.h>
 #include <mach-o/dyld_images.h>
 #include <string.h>
+#include <limits.h>
+#include <errno.h>
 
 int pid = 0;
 int g_pid = 0;
 int needleLen = 0;
-unsigned char *needle;
+unsigned char *nBuffer;
 
 mach_vm_address_t *scanMem(int pid, mach_vm_address_t addr, mach_msg_type_number_t size)
 {
@@ -38,13 +40,13 @@ mach_vm_address_t *scanMem(int pid, mach_vm_address_t addr, mach_msg_type_number
     unsigned char buffer[len];
     int i = 0;
 
-
     while (bytesRead < size)
     {
         if ((kr_val = vm_read(t, addr, len, &memStart, &sz)) == KERN_SUCCESS)
         {
-            memcpy(buffer, (const void *)memStart, len);
-            if (memcmp(buffer, needle, len) == 0)
+            memcpy(buffer, (const void *)memStart, sz);
+            //printf("Size of read: %d, Size of needle: %d\n", sizeof(buffer), sizeof(nBuffer));
+            if (memcmp(buffer, nBuffer, len) == 0)
             {
                 fflush(stdout);
                 return (unsigned long long *)addr;
@@ -64,8 +66,7 @@ mach_vm_address_t *scanMem(int pid, mach_vm_address_t addr, mach_msg_type_number
     printf("[i] Scanning ended without a match.\r\n");
     fflush(stdout);
     return NULL;
-} 
-
+}
 
 unsigned int *getMemRegions(task_t task, vm_address_t address)
 {
@@ -112,7 +113,7 @@ int main(int argc, char** argv) {
     mach_vm_address_t addr = 1;
 
 
-    if (argc >= 4)
+    if (argc >= 3)
     {
         pid = atoi(argv[1]);
         g_pid = pid; //Required for fw >= 6.0    
@@ -122,8 +123,24 @@ int main(int argc, char** argv) {
             fprintf(stderr, "[-] task_for_pid() failed, error %d - %s", rc, mach_error_string(rc));
             exit(1);
         }
-        needle = argv[2];
-        needleLen = atoi(argv[3]);
+
+        FILE *fr;
+        fr = fopen(argv[2], "rb");
+        unsigned char buf[256];
+        long int cnt = 0;
+        while ((cnt = (long)fread(buf, sizeof(unsigned char), 16, fr))>0)
+            nBuffer = buf;
+        fclose(fr);
+
+        FILE *f = fopen(argv[2], "rb");
+        if (f)
+        {
+            fseek(f, 0, SEEK_END);
+            needleLen = ftell(f);
+            fclose(f);
+        }
+        //needleLen = atoi(argv[3]);
+
         printf("[+] PID: %d\n[i] Task: %d\n[+] Needle Length: \"%d\"\n", pid, task, needleLen);
         unsigned int *sym = getMemRegions(task, addr);
         if (sym != NULL)
@@ -132,6 +149,6 @@ int main(int argc, char** argv) {
             printf("[-] Didn\'t find the function.\n");
     }
     else
-        fprintf(stderr, "[i] Usage: %s <pid> $'<needle>' <needle length (in bytes)>\n", argv[0]);
+        fprintf(stderr, "[i] Usage: %s <pid> <Path to file containing needle>\n", argv[0]);
     return 0;
 }
