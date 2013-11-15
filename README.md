@@ -11,18 +11,21 @@ Contact: `wiresharkGD@gmail.com` || `@Hexploitable`
 2. Compile the scanner and then set the binary's entitlements appropriately:
 
 		ldid -Sentitlements.xml <scanner binary>
+3. Write the needle to a file:
 
-3. Run the scanner against the target process. It will locate the signature in memory and print it's address. The signature has to be passed in as bytes, not a literal string so use the scanner as shown:
+		echo -n -e '\x55\x48\x89\xE5\xB8\x15\x00\x00\x00\x5D' > hex
 
-		sudo ./scanner <pid> $'<signature>' <Needle Length in bytes>
+4. Run the scanner against the target process. It will locate the signature in memory and print it's address. The signature has to be passed in as bytes, not a literal string so use the scanner as shown:
+
+		sudo ./scanner <pid> <Path to file containing needle>
 e.g:
 
-		sudo ./scanner 1337 $'\xDE\xAD\xBE\xEF' 4
+		sudo ./scanner 1337 ./hex
 
-4. Use the returned address in Tweak.xm to hook it.
+5. Use the returned address in Tweak.xm to hook it.
 	-	If ASLR/PIE is enabled - simply get the address of an import too, calculate the offset and then modify Tweak.xm to use an offset instead of a hardcoded address, this way you can hook it, knowing it'll work 100% of the time. 
 
 
-5. Inject your library into the process as you normally would:
+6. Inject your library into the process as you normally would:
 
 		DYLD_INSERT_LIBRARIES=/Library/MobileSubstrate/DynamicLibraries/<libName>.dylib ./<binary>
